@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GreenCart - Login</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+
+  <body>
+    <div class="relative flex size-full min-h-screen flex-col bg-white overflow-x-hidden" style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'>
+      <div class="layout-container flex h-full grow flex-col">
+
+        <!-- NAVBAR -->
+        <header class="flex items-center justify-between border-b border-[#f0f4f0] px-10 py-3">
+          <div class="flex items-center gap-4 text-[#111711]">
+            <div class="size-4">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path></svg>
+            </div>
+            <h2 class="text-lg font-bold tracking-tight">GreenCart</h2>
+          </div>
+          <div class="flex items-center gap-9">
+            <a class="text-sm font-medium" href="#">Upload</a>
+            <a class="text-sm font-medium" href="#">My Receipts</a>
+            <a class="text-sm font-medium" href="#">Dashboard</a>
+            <button class="h-10 px-4 rounded-xl bg-[#f0f4f0] text-sm font-bold">Cart</button>
+          </div>
+        </header>
+
+        <!-- LOGIN FORM -->
+        <div class="flex flex-1 items-center justify-center py-8 px-4">
+          <div class="w-full max-w-md">
+            <h2 class="text-[28px] font-bold text-center mb-6">Welcome to GreenCart 🌿</h2>
+
+            <!-- FORM START -->
+            <form id="loginForm">
+              <div class="mb-4">
+                <label class="block text-base font-medium mb-2">Email</label>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="Enter your email"
+                  class="form-input w-full rounded-xl border border-[#dce5dc] h-14 px-4 text-base placeholder:text-[#648764]"
+                />
+              </div>
+
+              <div class="mb-6">
+                <label class="block text-base font-medium mb-2">Password</label>
+                <input
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="Enter your password"
+                  class="form-input w-full rounded-xl border border-[#dce5dc] h-14 px-4 text-base placeholder:text-[#648764]"
+                />
+              </div>
+
+              <div class="flex justify-center mb-4">
+                <button
+                  type="submit"
+                  class="h-10 px-4 w-full bg-[#4ce54c] text-sm font-bold rounded-xl"
+                >
+                  Login
+                </button>
+              </div>
+            </form>
+            <!-- FORM END -->
+
+            <p class="text-[#648764] text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center underline">
+              <a href="/register">Don't have an account? Sign up</a>
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ Login Script -->
+    <script>
+      document.getElementById("loginForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const response = await fetch("/login", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.user_id) {
+          localStorage.setItem("user_id", data.user_id);
+          alert("Login successful!");
+          window.location.href = "/upload"; // ✅ redirect to upload page
+        } else {
+          alert(data.error || "Login failed. Please try again.");
+        }
+      });
+    </script>
+  </body>
+</html>

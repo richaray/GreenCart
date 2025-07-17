@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800"
+    />
+    <title>GreenCart - Register</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+
+  <body>
+    <div
+      class="flex flex-col min-h-screen bg-white items-center"
+      style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'
+    >
+      <!-- ✅ GreenCart Header (Logo + Title) -->
+      <header class="w-full flex items-center gap-4 text-[#121712] border-b border-[#f1f4f1] px-10 py-3">
+        <div class="size-4">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
+          </svg>
+        </div>
+        <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">GreenCart</h2>
+      </header>
+
+      <div class="w-full max-w-md px-6 py-8">
+        <h2 class="text-[28px] font-bold text-center mb-6 text-[#121712]">
+          Join GreenCart Today! 🌿
+        </h2>
+
+        <!-- FORM START -->
+        <form id="registerForm" class="space-y-6">
+          <div>
+            <label class="block text-base font-medium mb-2 text-[#121712]">Name</label>
+            <input
+              type="text"
+              name="name"
+              placeholder="Enter your name"
+              required
+              class="form-input w-full rounded-xl border border-[#dde4dd] h-14 px-4 text-base placeholder:text-[#678367]"
+            />
+          </div>
+
+          <div>
+            <label class="block text-base font-medium mb-2 text-[#121712]">Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              required
+              class="form-input w-full rounded-xl border border-[#dde4dd] h-14 px-4 text-base placeholder:text-[#678367]"
+            />
+          </div>
+
+          <div>
+            <label class="block text-base font-medium mb-2 text-[#121712]">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+              class="form-input w-full rounded-xl border border-[#dde4dd] h-14 px-4 text-base placeholder:text-[#678367]"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full h-10 bg-[#98e598] text-[#121712] text-sm font-bold rounded-full"
+          >
+            Sign Up
+          </button>
+        </form>
+
+        <p id="message" class="text-center text-sm text-[#678367] mt-4"></p>
+
+        <p class="text-[#678367] text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center underline">
+          <a href="/login">Already have an account? Login</a>
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("registerForm");
+      const message = document.getElementById("message");
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const formData = {
+          name: form.name.value,
+          email: form.email.value,
+          password: form.password.value,
+        };
+
+        const response = await fetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+        message.textContent = result.message || result.error;
+        message.style.color = result.error ? "red" : "green";
+      });
+    </script>
+  </body>
+</html>

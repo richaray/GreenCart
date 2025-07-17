@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800"
+    />
+    <title>GreenCart Upload</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+
+  <body>
+    <div
+      class="relative flex min-h-screen flex-col bg-white overflow-x-hidden"
+      style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'
+    >
+      <!-- Navbar -->
+      <div class="layout-container flex flex-col h-full grow">
+        <header class="flex items-center justify-between border-b border-[#f0f4f0] px-10 py-3">
+          <div class="flex items-center gap-4 text-[#111711]">
+            <div class="size-4">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
+              </svg>
+            </div>
+            <h2 class="text-lg font-bold tracking-tight">GreenCart</h2>
+          </div>
+          <div class="flex items-center gap-9">
+            <a class="text-sm font-medium" href="/upload">Upload</a>
+            <a class="text-sm font-medium" href="/history">History</a>
+            <a class="text-sm font-medium" href="/dashboard">Dashboard</a>
+            <button class="h-10 px-4 rounded-xl bg-[#f0f4f0] text-sm font-bold">Cart</button>
+          </div>
+        </header>
+
+        <!-- Upload Area -->
+        <div class="px-40 py-10 flex justify-center">
+          <div class="flex flex-col w-full max-w-5xl gap-6">
+            <!-- Top Section: Image + Upload -->
+            <div class="flex flex-col xl:flex-row gap-8">
+              <!-- Image -->
+              <div class="w-full xl:w-1/2">
+                <div
+                  class="bg-center bg-no-repeat bg-cover aspect-[3/2] rounded-xl w-full"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAKupObdMC_-nzOMepvTnCUXS7Sbsyzs-ZVsuAEprNfvp9UGxeNOeufhW89PnJbXQRjNE03Y6Fq2btn3wBUr3EyBJj7YmKk2aMQ2P7yzfKP073LzyYzW-qqh0NAEUpcBh-QXfMg7espxKvegCTxeJ13Ph-Pv43hW5Y5F56Ke5P-ZunSuMFGoeN6nAGC7PeOJinNtPyZiEF0v73fMpjpr8-qS8-NmXWALIuDkF4zD_6vTbm8f-gazpgrjT3t7VMz93atVoGzYnG1FPg");'
+                ></div>
+              </div>
+
+              <!-- Upload Form -->
+              <div class="w-full xl:w-1/2 flex flex-col justify-center gap-4">
+                <p class="text-[#111711] text-lg font-bold leading-tight">
+                  Upload your shopping receipt (PDF)
+                </p>
+                <form id="uploadForm" enctype="multipart/form-data">
+                  <input
+                    type="file"
+                    name="file"
+                    accept=".pdf"
+                    class="border border-gray-300 rounded-lg w-full px-4 py-2"
+                    required
+                  />
+                  <input type="hidden" name="user_id" id="userIdInput" />
+                  <button
+                    type="submit"
+                    class="mt-4 flex items-center justify-center h-10 px-4 rounded-full bg-[#4ce54c] text-sm font-medium text-[#111711]"
+                  >
+                    Generate Eco Receipt
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Output: Eco Receipt -->
+            <div id="ecoReceiptContainer" class="hidden rounded-xl border border-[#e0eae0] p-6">
+              <h3 class="text-xl font-bold mb-4">Eco Receipt</h3>
+              <ul id="ecoReceiptList" class="space-y-3 text-[#111711] text-base font-medium"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      // Set user_id in form from localStorage
+      const storedUserId = localStorage.getItem("user_id");
+      if (!storedUserId || storedUserId === "null") {
+        alert("You are not logged in.");
+        window.location.href = "/login";
+      } else {
+        document.getElementById("userIdInput").value = storedUserId;
+      }
+
+      const form = document.getElementById("uploadForm");
+      const ecoReceiptContainer = document.getElementById("ecoReceiptContainer");
+      const ecoReceiptList = document.getElementById("ecoReceiptList");
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+
+        const response = await fetch("/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          ecoReceiptList.innerHTML = "";
+          data.items.forEach((item) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <div class="flex flex-col gap-1">
+                <span class="font-semibold">${item.item_name} - ₹${item.price}</span>
+                <span class="text-sm text-gray-700">Eco Score: ${item.eco_score}</span>
+                <span class="text-sm text-green-700">Tip: ${item.ai_tip}</span>
+              </div>
+            `;
+            ecoReceiptList.appendChild(li);
+          });
+
+          ecoReceiptContainer.classList.remove("hidden");
+        } else {
+          alert(data.error || "Something went wrong");
+        }
+      });
+    </script>
+  </body>
+</html>

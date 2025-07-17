@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800"
+    />
+    <title>GreenCart Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden" style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'>
+      <div class="layout-container flex h-full grow flex-col">
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f4f0] px-10 py-3">
+          <div class="flex items-center gap-4 text-[#111811]">
+            <div class="size-4">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path></svg>
+            </div>
+            <h2 class="text-[#111811] text-lg font-bold leading-tight tracking-[-0.015em]">GreenCart</h2>
+          </div>
+          <div class="flex items-center gap-9">
+            <a class="text-[#111811] text-sm font-medium leading-normal" href="/upload">Upload</a>
+            <a class="text-[#111811] text-sm font-medium leading-normal" href="/history">History</a>
+            <a class="text-[#111811] text-sm font-medium leading-normal" href="/dashboard">Dashboard</a>
+            <button class="h-10 px-4 rounded-xl bg-[#f0f4f0] text-sm font-bold">Cart</button>
+          </div>
+        </header>
+
+        <div class="px-40 flex flex-1 justify-center py-5">
+          <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+            <div class="flex flex-wrap justify-between gap-3 p-4">
+              <p class="text-[#111811] tracking-light text-[32px] font-bold leading-tight min-w-72">Dashboard</p>
+            </div>
+
+            <!-- Average Eco Score Over Time Chart -->
+            <h2 class="text-[#111811] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Average Eco Score Over Time</h2>
+            <div class="px-4 pb-8">
+              <canvas id="ecoScoreChart" height="100"></canvas>
+            </div>
+
+            <!-- Top Eco-Friendly Items -->
+            <h2 class="text-[#111811] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Top Eco-Friendly Items</h2>
+            <ul id="topEcoItems" class="px-4 pb-6 space-y-2 text-[#111811] text-sm"></ul>
+
+            <!-- Low Eco Score Items -->
+            <h2 class="text-[#111811] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Items with Low Eco Score</h2>
+            <ul id="lowEcoItems" class="px-4 pb-6 space-y-2 text-[#111811] text-sm"></ul>
+
+            <!-- Total Receipts Uploaded -->
+            <h2 class="text-[#111811] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Total Receipts Uploaded</h2>
+            <div class="px-4 pb-10">
+              <div class="bg-[#e0f2e9] text-center rounded-xl py-6">
+                <p class="text-[#111811] text-4xl font-bold" id="receiptCount">0</p>
+                <p class="text-[#618961] text-base">Total Receipts Uploaded</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ Fixed Dashboard Script -->
+    <script>
+  const userId = localStorage.getItem("user_id");
+
+  if (!userId) {
+    alert("You are not logged in. Redirecting to login page...");
+    window.location.href = "/login";
+  }
+
+  async function fetchDashboardData() {
+    try {
+      // 1. Eco Score Over Time (as Bar Chart)
+      const ecoRes = await fetch(`/dashboard/eco-score-over-time/${userId}`);
+      const ecoData = await ecoRes.json();
+      const labels = ecoData.map(row => new Date(row[0]).toLocaleDateString());
+      const scores = ecoData.map(row => row[1]);
+
+      const ctx = document.getElementById('ecoScoreChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Average Eco Score',
+            data: scores,
+            backgroundColor: '#a7f3d0', // soft green
+            borderColor: '#10b981', // teal border
+            borderWidth: 1,
+            hoverBackgroundColor: '#6ee7b7'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: 'Average Eco Score Over Time',
+              font: { size: 18 }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              grid: {
+                color: '#e5e7eb'
+              },
+              title: {
+                display: true,
+                text: 'Eco Score'
+              }
+            }
+          }
+        }
+      });
+
+      // 2. Top Eco Items
+      const topRes = await fetch(`/dashboard/top-eco-items/${userId}`);
+      const topItems = await topRes.json();
+      const topList = document.getElementById("topEcoItems");
+      topItems.forEach(([name, score]) => {
+        const li = document.createElement("li");
+        li.textContent = `${name} – Eco Score: ${score}`;
+        topList.appendChild(li);
+      });
+
+      // 3. Low Eco Items
+      const lowRes = await fetch(`/dashboard/low-eco-items/${userId}`);
+      const lowItems = await lowRes.json();
+      const lowList = document.getElementById("lowEcoItems");
+      lowItems.forEach(([name, score]) => {
+        const li = document.createElement("li");
+        li.textContent = `${name} – Eco Score: ${score}`;
+        lowList.appendChild(li);
+      });
+
+      // 4. Total Receipts
+      const countRes = await fetch(`/dashboard/receipt-count/${userId}`);
+      const count = await countRes.json();
+      document.getElementById("receiptCount").textContent = count[0];
+
+    } catch (error) {
+      console.error("Error loading dashboard:", error);
+      alert("Failed to load dashboard data. Please try again.");
+    }
+  }
+
+  fetchDashboardData();
+</script>
+  </body>
+</html>

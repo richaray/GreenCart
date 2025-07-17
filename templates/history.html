@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800"
+    />
+    <title>GreenCart History</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+
+  <body class="bg-white font-[\'Plus Jakarta Sans\', \'Noto Sans\', sans-serif]">
+    <div class="flex flex-col min-h-screen">
+      <!-- Navbar -->
+      <header class="flex items-center justify-between border-b border-[#f0f4f0] px-10 py-3">
+        <div class="flex items-center gap-4 text-[#111811]">
+          <div class="size-4">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
+            </svg>
+          </div>
+          <h2 class="text-lg font-bold tracking-tight">GreenCart</h2>
+        </div>
+        <div class="flex items-center gap-9">
+          <a class="text-sm font-medium" href="/upload">Upload</a>
+          <a class="text-sm font-medium" href="#">History</a>
+          <a class="text-sm font-medium" href="/dashboard">Dashboard</a>
+          <button class="h-10 px-4 rounded-xl bg-[#f0f4f0] text-sm font-bold">Cart</button>
+        </div>
+      </header>
+
+      <!-- History Content -->
+      <div class="px-40 py-10">
+        <h1 class="text-[32px] font-bold mb-6">History</h1>
+        <div id="receiptList" class="space-y-6"></div>
+      </div>
+    </div>
+
+    <script>
+      const userId = localStorage.getItem("user_id");
+      if (!userId || userId === "null") {
+        alert("You are not logged in.");
+        window.location.href = "/login";
+      }
+ // Change this as needed from localStorage or server session
+
+      async function fetchReceipts() {
+        const res = await fetch(`/receipts/${userId}`);
+        const receipts = await res.json();
+        const container = document.getElementById("receiptList");
+        container.innerHTML = "";
+
+        receipts.forEach((receipt) => {
+          const card = document.createElement("div");
+          card.className = "border rounded-xl p-4 shadow-sm";
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-[#638863]">Average Eco Score: ${receipt.eco_score_avg}</p>
+                <p class="text-base font-bold text-[#111811]">${receipt.filename}</p>
+                <p class="text-sm text-[#638863]">Uploaded on ${receipt.upload_date}</p>
+              </div>
+              <button
+                class="text-sm font-medium text-green-700 hover:underline"
+                onclick="toggleDetails(${receipt.receipt_id}, this)"
+              >
+                View Details
+              </button>
+            </div>
+            <div id="details-${receipt.receipt_id}" class="mt-4 hidden">
+              <table class="w-full text-left border mt-2">
+                <thead>
+                  <tr class="bg-gray-100">
+                    <th class="px-3 py-2">Item</th>
+                    <th class="px-3 py-2">Price</th>
+                    <th class="px-3 py-2">Eco Score</th>
+                    <th class="px-3 py-2">AI Tip</th>
+                  </tr>
+                </thead>
+                <tbody id="items-${receipt.receipt_id}"></tbody>
+              </table>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      }
+
+      async function toggleDetails(receiptId, btn) {
+        const detailsDiv = document.getElementById(`details-${receiptId}`);
+        const itemsTable = document.getElementById(`items-${receiptId}`);
+
+        if (!detailsDiv.classList.contains("hidden")) {
+          detailsDiv.classList.add("hidden");
+          btn.textContent = "View Details";
+          return;
+        }
+
+        // Fetch items only if not already loaded
+        if (itemsTable.childElementCount === 0) {
+          const res = await fetch(`/receipt/${receiptId}`);
+          const data = await res.json();
+
+          data.items.forEach((item) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td class="px-3 py-2">${item.item_name}</td>
+              <td class="px-3 py-2">₹${item.price}</td>
+              <td class="px-3 py-2">${item.eco_score}</td>
+              <td class="px-3 py-2 text-green-700 text-sm">${item.ai_tip}</td>
+            `;
+            itemsTable.appendChild(row);
+          });
+        }
+
+        detailsDiv.classList.remove("hidden");
+        btn.textContent = "Hide Details";
+      }
+
+      // Load receipts on page load
+      fetchReceipts();
+    </script>
+  </body>
+</html>
