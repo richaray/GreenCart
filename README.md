@@ -69,6 +69,8 @@ mysql -u your_username -p greencart < init.sql
 ```
 
 - Update your `.env` file with your DB credentials.
+- Add config.py file 
+
 
 ### 4. Run the Application
 
